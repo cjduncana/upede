@@ -22,10 +22,15 @@
 			"@/*": [
 				"./src/*"
 			]
-		}
+		},
+		"types": [
+			"cypress",
+			"@testing-library/cypress"
+		]
 	},
 	"include": [
 		"next-env.d.ts",
+		"./jest.setup.ts",
 		"**/*.ts",
 		"**/*.tsx"
 	],
