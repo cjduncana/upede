@@ -6,7 +6,7 @@ describe("Report", () => {
 
 	it("should create a Report", () => {
 		cy.fixture("pothole.jpeg").as("pothole")
-		cy.findByLabelText("Select Image").selectFile("@pothole")
+		cy.findByLabelText("Select Image").selectFile("@pothole", { force: true })
 
 		cy.findByRole("textbox", { name: "Image Description" }).type("There's a pothole!")
 
