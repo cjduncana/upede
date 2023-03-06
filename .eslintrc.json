@@ -20,16 +20,22 @@
 			"error",
 			"always-multiline"
 		],
+		"comma-spacing": "error",
 		"eol-last": "error",
 		"indent": [
 			"error",
 			"tab"
 		],
+		"key-spacing": "error",
 		"linebreak-style": [
 			"error",
 			"unix"
 		],
 		"no-trailing-spaces": "error",
+		"object-curly-spacing": [
+			"error",
+			"always"
+		],
 		"jsx-quotes": [
 			"error",
 			"prefer-double"
