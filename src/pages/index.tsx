@@ -10,11 +10,19 @@ export default function Index(): JSX.Element {
 
 	const [fileList, setFileList] = React.useState<File[]>([])
 	const [hasSubmitted, setHasSubmitted] = React.useState(false)
+	const [isImagesInvalid, setIsImagesInvalid] = React.useState(false)
 
 	const onImagesChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
 		event.preventDefault()
 
 		setFileList(event.target.files ? Array.from(event.target.files) : [])
+		setIsImagesInvalid(false)
+	}
+
+	const onImagesInvalid: React.FormEventHandler<HTMLInputElement> = (event) => {
+		event.preventDefault()
+
+		setIsImagesInvalid(event.currentTarget.validity.valueMissing)
 	}
 
 	const onSubmit: React.FormEventHandler = (event) => {
@@ -34,7 +42,7 @@ export default function Index(): JSX.Element {
 				spacing={2}
 				sx={formStyle}
 			>
-				<Button component="label">
+				<Button component="label" color={isImagesInvalid ? "error" : undefined}>
 					Select Images
 					<input
 						hidden
@@ -42,7 +50,9 @@ export default function Index(): JSX.Element {
 						accept="image/*"
 						capture
 						multiple
+						required
 						onChange={onImagesChange}
+						onInvalid={onImagesInvalid}
 					/>
 				</Button>
 				<ImageList cols={matchDownMd ? 1 : 2 }>
@@ -53,7 +63,7 @@ export default function Index(): JSX.Element {
 						</ImageListItem>
 					))}
 				</ImageList>
-				<TextField label="Image Description" multiline rows={4} />
+				<TextField label="Image Description" multiline rows={4} required />
 				<Button type="submit" variant="contained">Generate Report</Button>
 			</Stack>
 		</React.Fragment>
