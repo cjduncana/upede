@@ -24,7 +24,10 @@
 		"eol-last": "error",
 		"indent": [
 			"error",
-			"tab"
+			"tab",
+			{
+				"SwitchCase": 1
+			}
 		],
 		"key-spacing": "error",
 		"linebreak-style": [
