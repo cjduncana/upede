@@ -38,6 +38,7 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
+    "@total-typescript/ts-reset": "^0.4.2",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "cypress": "^12.7.0",
     "eslint-plugin-cypress": "^2.12.1",
