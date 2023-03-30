@@ -14,7 +14,8 @@ function createReportReader(newReport: INewReport): RTE.ReaderTaskEither<PathLik
 	return (path: PathLike): TE.TaskEither<string, IReport> => {
 		return pipe(
 			TE.Do,
-			TE.let("report", () => ({ ...newReport, id: randomReportId() })),
+			TE.bind("id", () => TE.fromIO(randomReportId)),
+			TE.let("report", ({ id }) => ({ ...newReport, id })),
 			TE.chainFirst(({ report }) => appendRow(report)({ path, encode: encodeReport })),
 			TE.map(({ report }) => report),
 		)

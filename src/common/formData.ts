@@ -1,24 +1,20 @@
 import formidable from "formidable"
+import type { File, Options } from "formidable"
 import {
-	array as A,
-	readerTaskEither as RTE,
 	record as R,
-	tuple as T,
 	taskEither as TE,
 } from "fp-ts"
-import { flow } from "fp-ts/function"
-import type { NextApiRequest } from "next"
+import type { ReaderTaskEither } from "fp-ts/ReaderTaskEither"
+import type { IncomingMessage } from "http"
 
-export type Fields = Record<string, string[]>
-export type Files = Record<string, formidable.File[]>
-export type { Options } from "formidable"
+export type { File, Options } from "formidable"
 
 export interface Result {
-    fields: Fields
-    files: Files
+    fields: Record<string, string[]>
+    files: Record<string, File[]>
 }
 
-export function parseForm(req: NextApiRequest): RTE.ReaderTaskEither<formidable.Options, string, Result> {
+export function parseForm(req: IncomingMessage): ReaderTaskEither<Options, string, Result> {
 	return (options) => {
 		const form = formidable(options)
 		return TE.tryCatch(() => new Promise((resolve, reject) => {
@@ -27,8 +23,8 @@ export function parseForm(req: NextApiRequest): RTE.ReaderTaskEither<formidable.
 					reject(err)
 				} else {
 					resolve({
-						fields: mandateArrays(fields),
-						files: mandateArrays(files),
+						fields: R.map<string | string[], string[]>(forceArray)(fields),
+						files: R.map<File | File[], File[]>(forceArray)(files),
 					})
 				}
 			})
@@ -40,14 +36,6 @@ export function filterImages({ mimetype }: formidable.Part): boolean {
 	return mimetype?.includes("image") ?? false
 }
 
-function mandateArrays<K extends string, A>(record: Record<K, A | A[]>): Record<K, A[]> {
-	return flow<[Record<K, A | A[]>], [K, A | A[]][], [K, A[]][], Record<K, A[]>>(
-		R.toEntries,
-		A.map(T.mapSnd(forceArray)),
-		R.fromEntries,
-	)(record)
-}
-
 function forceArray<A>(value: A | A[]): A[] {
-	return Array.isArray(value) ? value : A.of(value)
+	return Array.isArray(value) ? value : [value]
 }

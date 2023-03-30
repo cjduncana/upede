@@ -1,8 +1,9 @@
 import { either as E, readerTaskEither as RTE, taskEither as TE } from "fp-ts"
-import { flow } from "fp-ts/lib/function"
+import type { ReaderTaskEither } from "fp-ts/ReaderTaskEither"
+import { flow } from "fp-ts/function"
 import * as t from "io-ts"
 import { PathReporter } from "io-ts/PathReporter"
-import { NonEmptyString } from "io-ts-types/lib/NonEmptyString"
+import { NonEmptyString } from "io-ts-types/NonEmptyString"
 import type { NextConfig, NextApiRequest, NextApiResponse } from "next"
 
 import { HandlerOptions, RestApiError, chooseMethod, respondWith } from "../../common/api"
@@ -14,14 +15,17 @@ const reportService = createReportService("reports.csv")
 
 // POST /api/report: Create a new report
 
-const NewReportParser = t.type({ description: NonEmptyString }, "NewReport")
+const NewReportParser = t.type({ description: t.tuple([NonEmptyString]) }, "NewReport")
 
-const parseNewReport: RTE.ReaderTaskEither<HandlerOptions<IReport>, RestApiError, INewReport> = RTE.asksReaderTaskEither(flow(
+const parseNewReport: ReaderTaskEither<HandlerOptions<IReport>, RestApiError, INewReport> = RTE.asksReaderTaskEither(flow(
 	({ req }) => parseForm(req)({ multiples: true, filter: filterImages }),
 	TE.mapLeft<string, RestApiError>(()=>({ type: "BadRequestError", errors: ["Failed to parse form data"] })),
 	TE.chainEitherK<RestApiError, Result, INewReport>(flow(
 		({ fields }) => NewReportParser.decode(fields),
-		E.mapLeft<t.Errors, RestApiError>(errors=>({ type: "BadRequestError", errors: PathReporter.report(E.left(errors)) })),
+		E.bimap(
+			(errors)=>({ type: "BadRequestError", errors: PathReporter.report(E.left(errors)) }),
+			({ description })=>({ description: description[0] }),
+		),
 	)),
 	RTE.fromTaskEither,
 ))
