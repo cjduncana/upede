@@ -28,9 +28,21 @@ export default function SignIn(): JSX.Element {
 	return (
 		<Stack component="form" onSubmit={onSubmit} spacing={2} sx={formStyle}>
 			<h1>Sign In</h1>
-			<TextInput label="Username" name={usernameInputName} autoComplete="username" required />
-			<PasswordInput label="Password" name={passwordInputName} autoComplete="current-password" required />
-			<Button type="submit" variant="contained">Sign In</Button>
+			<TextInput
+				label="Username"
+				name={usernameInputName}
+				autoComplete="username"
+				required
+			/>
+			<PasswordInput
+				label="Password"
+				name={passwordInputName}
+				autoComplete="current-password"
+				required
+			/>
+			<Button type="submit" variant="contained">
+				Sign In
+			</Button>
 		</Stack>
 	)
 }

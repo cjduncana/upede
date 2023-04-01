@@ -1,4 +1,12 @@
-import { Alert, Button, ImageList, ImageListItem, Stack, TextField, useMediaQuery } from "@mui/material"
+import {
+	Alert,
+	Button,
+	ImageList,
+	ImageListItem,
+	Stack,
+	TextField,
+	useMediaQuery,
+} from "@mui/material"
 import { Theme, useTheme } from "@mui/material/styles"
 import { SystemStyleObject } from "@mui/system"
 import React from "react"
@@ -12,7 +20,9 @@ export default function Index(): JSX.Element {
 	const [hasSubmitted, setHasSubmitted] = React.useState(false)
 	const [isImagesInvalid, setIsImagesInvalid] = React.useState(false)
 
-	const onImagesChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+	const onImagesChange: React.ChangeEventHandler<HTMLInputElement> = (
+		event,
+	) => {
 		event.preventDefault()
 
 		setFileList(event.target.files ? Array.from(event.target.files) : [])
@@ -55,7 +65,7 @@ export default function Index(): JSX.Element {
 						onInvalid={onImagesInvalid}
 					/>
 				</Button>
-				<ImageList cols={matchDownMd ? 1 : 2 }>
+				<ImageList cols={matchDownMd ? 1 : 2}>
 					{fileList.map((file) => (
 						<ImageListItem key={file.name}>
 							{/* eslint-disable-next-line @next/next/no-img-element*/}
@@ -64,7 +74,9 @@ export default function Index(): JSX.Element {
 					))}
 				</ImageList>
 				<TextField label="Image Description" multiline rows={4} required />
-				<Button type="submit" variant="contained">Generate Report</Button>
+				<Button type="submit" variant="contained">
+					Generate Report
+				</Button>
 			</Stack>
 		</React.Fragment>
 	)

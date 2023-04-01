@@ -4,7 +4,7 @@ Provides a platform for pedestrians to generate complaint reports.
 
 ## Built With
 
-* [Next.js](https://nextjs.org/) - The web framework used
+- [Next.js](https://nextjs.org/) - The web framework used
 
 ## Versioning
 
@@ -12,7 +12,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Christopher John Duncan Araúz** - *Initial work* - [cjduncana](https://github.com/cjduncana)
+- **Christopher John Duncan Araúz** - _Initial work_ - [cjduncana](https://github.com/cjduncana)
 
 ## License
 
