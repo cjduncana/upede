@@ -10,13 +10,17 @@ export function createReportRepository(path: PathLike): IReportRepository {
 	return { create: (report: INewReport) => createReportReader(report)(path) }
 }
 
-function createReportReader(newReport: INewReport): RTE.ReaderTaskEither<PathLike, string, IReport> {
+function createReportReader(
+	newReport: INewReport,
+): RTE.ReaderTaskEither<PathLike, string, IReport> {
 	return (path: PathLike): TE.TaskEither<string, IReport> => {
 		return pipe(
 			TE.Do,
 			TE.bind("id", () => TE.fromIO(randomReportId)),
 			TE.let("report", ({ id }) => ({ ...newReport, id })),
-			TE.chainFirst(({ report }) => appendRow(report)({ path, encode: encodeReport })),
+			TE.chainFirst(({ report }) =>
+				appendRow(report)({ path, encode: encodeReport }),
+			),
 			TE.map(({ report }) => report),
 		)
 	}

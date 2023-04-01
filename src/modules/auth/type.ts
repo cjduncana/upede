@@ -1,4 +1,4 @@
 export interface IAuth {
-    username: string
-    jwtToken: string
+	username: string
+	jwtToken: string
 }

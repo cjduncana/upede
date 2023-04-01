@@ -4,4 +4,5 @@ import { PathLike } from "fs"
 import { createReportRepository } from "./csvRepository"
 import { IReportService } from "./type"
 
-export const createReportService: R.Reader<PathLike, IReportService> = createReportRepository
+export const createReportService: R.Reader<PathLike, IReportService> =
+	createReportRepository

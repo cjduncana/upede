@@ -9,7 +9,7 @@ import React from "react"
 
 import { AuthProvider } from "../context/auth"
 
-export default function MyApp({ Component, pageProps }: AppProps):JSX.Element {
+export default function MyApp({ Component, pageProps }: AppProps): JSX.Element {
 	return (
 		<AuthProvider>
 			<CssBaseline />

@@ -1,4 +1,9 @@
-import { either as E, readerIO as RIO, readerTask as RT, taskEither as TE } from "fp-ts"
+import {
+	either as E,
+	readerIO as RIO,
+	readerTask as RT,
+	taskEither as TE,
+} from "fp-ts"
 import { Either } from "fp-ts/Either"
 import { ReaderIO } from "fp-ts/ReaderIO"
 import type { ReaderTask } from "fp-ts/ReaderTask"
@@ -11,23 +16,40 @@ import { PathReporter } from "io-ts/PathReporter"
 import { Lens, Optional } from "monocle-ts"
 import type { NextApiRequest, NextApiResponse } from "next"
 
-export type { NextConfig as IConfig, NextApiRequest as IRequest, NextApiResponse as IResponse } from "next"
+export type {
+	NextConfig as IConfig,
+	NextApiRequest as IRequest,
+	NextApiResponse as IResponse,
+} from "next"
 
-export type IHandler<A> = (req: NextApiRequest, res: NextApiResponse<A | IRestApiError>) => Promise<void>
+export type IHandler<A> = (
+	req: NextApiRequest,
+	res: NextApiResponse<A | IRestApiError>,
+) => Promise<void>
 
-export type IHandlerReader<A> = ReaderTaskEither<IHandlerOptions<A>, IRestApiError, A>
+export type IHandlerReader<A> = ReaderTaskEither<
+	IHandlerOptions<A>,
+	IRestApiError,
+	A
+>
 
-export function createHandler<A>(handlers: Record<string, IHandlerReader<A>>): ReaderTask<IHandlerOptions<A>, void> {
+export function createHandler<A>(
+	handlers: Record<string, IHandlerReader<A>>,
+): ReaderTask<IHandlerOptions<A>, void> {
 	return pipe(
 		chooseMethod(handlers),
-		RT.chainReaderIOK(flow(
-			respondWith,
-			RIO.local(handlerOptionsToResponseLens<A>().get),
-		)),
+		RT.chainReaderIOK(
+			flow(respondWith, RIO.local(handlerOptionsToResponseLens<A>().get)),
+		),
 	)
 }
 
-function chooseMethod<A>(handlers: Record<string, ReaderTaskEither<IHandlerOptions<A>, IRestApiError, A>>): ReaderTaskEither<IHandlerOptions<A>, IRestApiError, A> {
+function chooseMethod<A>(
+	handlers: Record<
+		string,
+		ReaderTaskEither<IHandlerOptions<A>, IRestApiError, A>
+	>,
+): ReaderTaskEither<IHandlerOptions<A>, IRestApiError, A> {
 	return ({ req, res }): TaskEither<IRestApiError, A> => {
 		const handler = req.method && handlers[req.method]
 		return handler
@@ -36,7 +58,9 @@ function chooseMethod<A>(handlers: Record<string, ReaderTaskEither<IHandlerOptio
 	}
 }
 
-function respondWith<A>(result: Either<IRestApiError, A>): ReaderIO<NextApiResponse<A | IRestApiError>, void> {
+function respondWith<A>(
+	result: Either<IRestApiError, A>,
+): ReaderIO<NextApiResponse<A | IRestApiError>, void> {
 	return (res) => () =>
 		E.fold<IRestApiError, A, null>(
 			(error): null => {
@@ -72,12 +96,15 @@ function respondWith<A>(result: Either<IRestApiError, A>): ReaderIO<NextApiRespo
 }
 
 interface IBadRequestError {
-    type: "BadRequestError"
-    errors: string[]
+	type: "BadRequestError"
+	errors: string[]
 }
 
-export function getParseError(errors:t.Errors): IRestApiError {
-	return { type: "BadRequestError", errors: PathReporter.report(E.left(errors)) }
+export function getParseError(errors: t.Errors): IRestApiError {
+	return {
+		type: "BadRequestError",
+		errors: PathReporter.report(E.left(errors)),
+	}
 }
 
 interface IUnauthorizedError {
@@ -93,12 +120,15 @@ export const failedAuthentication: IUnauthorizedError = {
 }
 
 interface IMethodNotAllowedError {
-    type: "MethodNotAllowedError"
-    allowedMethods: string[]
-    message: string
+	type: "MethodNotAllowedError"
+	allowedMethods: string[]
+	message: string
 }
 
-function createMethodNotAllowedError(allowedMethods:string[], method?: string): IMethodNotAllowedError {
+function createMethodNotAllowedError(
+	allowedMethods: string[],
+	method?: string,
+): IMethodNotAllowedError {
 	return {
 		type: "MethodNotAllowedError",
 		allowedMethods,
@@ -107,28 +137,46 @@ function createMethodNotAllowedError(allowedMethods:string[], method?: string): 
 }
 
 interface IInternalServerError {
-    type: "InternalServerError"
-    message: string
+	type: "InternalServerError"
+	message: string
 }
 
-export type IRestApiError = IBadRequestError | IUnauthorizedError | IMethodNotAllowedError | IInternalServerError
+export type IRestApiError =
+	| IBadRequestError
+	| IUnauthorizedError
+	| IMethodNotAllowedError
+	| IInternalServerError
 
 export interface IHandlerOptions<A> {
 	req: NextApiRequest
 	res: NextApiResponse<A | IRestApiError>
 }
 
-export function handlerOptionsToRequestLens<A>(): Lens<IHandlerOptions<A>, NextApiRequest> {
+export function handlerOptionsToRequestLens<A>(): Lens<
+	IHandlerOptions<A>,
+	NextApiRequest
+> {
 	return Lens.fromProp<IHandlerOptions<A>>()("req")
 }
 
-export function handlerOptionsToBodyLens<A>(): Lens<IHandlerOptions<A>, unknown> {
-	return handlerOptionsToRequestLens<A>().composeLens<unknown>(Lens.fromProp<NextApiRequest>()("body"))
+export function handlerOptionsToBodyLens<A>(): Lens<
+	IHandlerOptions<A>,
+	unknown
+> {
+	return handlerOptionsToRequestLens<A>().composeLens<unknown>(
+		Lens.fromProp<NextApiRequest>()("body"),
+	)
 }
 
 export const requestToHeadersLens = Lens.fromProp<NextApiRequest>()("headers")
-export const requestToAuthorizationHeaderLens = requestToHeadersLens.composeOptional(Optional.fromNullableProp<IncomingHttpHeaders>()("authorization"))
+export const requestToAuthorizationHeaderLens =
+	requestToHeadersLens.composeOptional(
+		Optional.fromNullableProp<IncomingHttpHeaders>()("authorization"),
+	)
 
-export function handlerOptionsToResponseLens<A>(): Lens<IHandlerOptions<A>, NextApiResponse<A | IRestApiError>> {
+export function handlerOptionsToResponseLens<A>(): Lens<
+	IHandlerOptions<A>,
+	NextApiResponse<A | IRestApiError>
+> {
 	return Lens.fromProp<IHandlerOptions<A>>()("res")
 }

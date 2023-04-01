@@ -2,9 +2,12 @@ import React from "react"
 
 import { IAuth } from "../modules/auth/type"
 
-const AuthContext = React.createContext<[IAuth|undefined, React.Dispatch<React.SetStateAction<IAuth | undefined>>]|undefined>(undefined)
+const AuthContext = React.createContext<
+	| [IAuth | undefined, React.Dispatch<React.SetStateAction<IAuth | undefined>>]
+	| undefined
+>(undefined)
 
-export function AuthProvider(props:React.PropsWithChildren): JSX.Element {
+export function AuthProvider(props: React.PropsWithChildren): JSX.Element {
 	const [auth, setAuth] = React.useState<IAuth>()
 
 	return (
@@ -14,7 +17,7 @@ export function AuthProvider(props:React.PropsWithChildren): JSX.Element {
 	)
 }
 
-export function useAuth(): IAuth|undefined {
+export function useAuth(): IAuth | undefined {
 	const context = React.useContext(AuthContext)
 
 	if (!context) {

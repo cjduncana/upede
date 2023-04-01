@@ -4,12 +4,11 @@ import { createMocks } from "node-mocks-http"
 import * as API from "./api"
 
 describe("API", () => {
-
 	describe("#createHandler", () => {
-
 		it("should return a 200 response with the result", async () => {
-
-			const { req, res } = createMocks<API.IRequest, API.IResponse>({ method: "GET" })
+			const { req, res } = createMocks<API.IRequest, API.IResponse>({
+				method: "GET",
+			})
 
 			await API.createHandler({ GET: RTE.right("OK") })({ req, res })()
 
@@ -18,8 +17,9 @@ describe("API", () => {
 		})
 
 		it("should return a 400 response with the error", async () => {
-
-			const { req, res } = createMocks<API.IRequest, API.IResponse>({ method: "GET" })
+			const { req, res } = createMocks<API.IRequest, API.IResponse>({
+				method: "GET",
+			})
 
 			await API.createHandler({
 				GET: RTE.left({
@@ -36,8 +36,9 @@ describe("API", () => {
 		})
 
 		it("should return a 405 response with the error", async () => {
-
-			const { req, res } = createMocks<API.IRequest, API.IResponse>({ method: "POST" })
+			const { req, res } = createMocks<API.IRequest, API.IResponse>({
+				method: "POST",
+			})
 
 			await API.createHandler({ GET: RTE.right("OK") })({ req, res })()
 
@@ -45,13 +46,14 @@ describe("API", () => {
 			expect(res._getJSONData()).toEqual({
 				type: "MethodNotAllowedError",
 				allowedMethods: ["GET"],
-				message: "Method \"POST\" not allowed",
+				message: 'Method "POST" not allowed',
 			})
 		})
 
 		it("should return a 500 response with the error", async () => {
-
-			const { req, res } = createMocks<API.IRequest, API.IResponse>({ method: "GET" })
+			const { req, res } = createMocks<API.IRequest, API.IResponse>({
+				method: "GET",
+			})
 
 			await API.createHandler({
 				GET: RTE.left({

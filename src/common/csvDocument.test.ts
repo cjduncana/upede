@@ -5,15 +5,15 @@ import mock from "mock-fs"
 import { Row, appendRow } from "./csvDocument"
 
 describe("CSV Document", () => {
-
 	describe("#appendRow", () => {
-
 		afterEach(mock.restore)
 
 		it("should create a CSV document if none", async () => {
-
 			const path = "test.csv"
-			const encode = (value: number): Row => ({ value: value.toString(), isPositive: (value > 0).toString() })
+			const encode = (value: number): Row => ({
+				value: value.toString(),
+				isPositive: (value > 0).toString(),
+			})
 
 			mock()
 
@@ -27,9 +27,11 @@ describe("CSV Document", () => {
 		})
 
 		it("should create a CSV document if none", async () => {
-
 			const path = "test.csv"
-			const encode = (value: number): Row => ({ value: value.toString(), isPositive: (value > 0).toString() })
+			const encode = (value: number): Row => ({
+				value: value.toString(),
+				isPositive: (value > 0).toString(),
+			})
 
 			mock({ [path]: "value,isPositive\n1,true" })
 

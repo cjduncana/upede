@@ -10,62 +10,13 @@
 		"plugin:cypress/recommended",
 		"plugin:jsx-a11y/recommended",
 		"plugin:import/recommended",
-		"plugin:import/typescript"
+		"plugin:import/typescript",
+		"prettier"
 	],
 	"env": {
 		"cypress/globals": true
 	},
 	"rules": {
-		"comma-dangle": [
-			"error",
-			"always-multiline"
-		],
-		"comma-spacing": "error",
-		"eol-last": "error",
-		"indent": [
-			"error",
-			"tab",
-			{
-				"SwitchCase": 1
-			}
-		],
-		"key-spacing": "error",
-		"linebreak-style": [
-			"error",
-			"unix"
-		],
-		"multiline-ternary": [
-			"error",
-			"always-multiline"
-		],
-		"no-trailing-spaces": "error",
-		"object-curly-newline": [
-			"error",
-			{
-				"multiline": true
-			}
-		],
-		"object-curly-spacing": [
-			"error",
-			"always"
-		],
-		"operator-linebreak": [
-			"error",
-			"before"
-		],
-		"jsx-quotes": [
-			"error",
-			"prefer-double"
-		],
-		"quotes": [
-			"error",
-			"double"
-		],
-		"semi": [
-			"error",
-			"never"
-		],
-		"space-infix-ops": "error",
 		"@typescript-eslint/explicit-function-return-type": [
 			"error",
 			{
@@ -83,46 +34,12 @@
 					"order": "asc"
 				},
 				"groups": [
-					[
-						"builtin",
-						"external"
-					],
-					[
-						"parent",
-						"sibling",
-						"index"
-					]
+					["builtin", "external"],
+					["parent", "sibling", "index"]
 				],
 				"newlines-between": "always"
 			}
 		],
-		"react/jsx-fragments": [
-			"error",
-			"element"
-		],
-		"react/jsx-max-props-per-line": [
-			"error",
-			{
-				"when": "multiline"
-			}
-		],
-		"react/jsx-tag-spacing": [
-			"error",
-			{
-				"beforeSelfClosing": "proportional-always"
-			}
-		],
-		"react/jsx-wrap-multilines": [
-			"error",
-			{
-				"declaration": "parens-new-line",
-				"assignment": "parens-new-line",
-				"return": "parens-new-line",
-				"arrow": "parens-new-line",
-				"condition": "parens-new-line",
-				"logical": "parens-new-line",
-				"prop": "parens-new-line"
-			}
-		]
+		"react/jsx-fragments": ["error", "element"]
 	}
 }

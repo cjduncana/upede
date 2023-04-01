@@ -6,13 +6,10 @@ import mock from "mock-fs"
 import { createReportRepository } from "./csvRepository"
 
 describe("CSV Report Repository", () => {
-
 	describe("#create", () => {
-
 		afterEach(mock.restore)
 
 		it("should create a Report and add it to the CSV document", async () => {
-
 			const path = "test.csv"
 			const description = "test" as NonEmptyString
 			const reportRepository = createReportRepository(path)
@@ -25,7 +22,10 @@ describe("CSV Report Repository", () => {
 				throw new Error(createResult.left)
 			}
 
-			expect(createResult.right).toMatchObject({ id: expect.any(String), description: "test" })
+			expect(createResult.right).toMatchObject({
+				id: expect.any(String),
+				description: "test",
+			})
 
 			const content = await fs.readFile(path, "utf8")
 
