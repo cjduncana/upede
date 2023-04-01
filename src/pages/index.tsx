@@ -1,10 +1,15 @@
+import AccountCircleIcon from "@mui/icons-material/AccountCircle"
 import { Alert, Button, ImageList, ImageListItem, Stack, TextField, useMediaQuery } from "@mui/material"
 import { Theme, useTheme } from "@mui/material/styles"
 import { SystemStyleObject } from "@mui/system"
+import Link from "next/link"
 import React from "react"
+
+import { useAuth } from "../context/auth"
 
 export default function Index(): JSX.Element {
 
+	const auth = useAuth()
 	const theme = useTheme()
 	const matchDownMd = useMediaQuery(theme.breakpoints.down("sm"))
 
@@ -42,6 +47,15 @@ export default function Index(): JSX.Element {
 				spacing={2}
 				sx={formStyle}
 			>
+				<Button variant="contained"
+					size="small"
+					endIcon={<AccountCircleIcon />}
+					sx={signInButtonStyle}
+					LinkComponent={Link}
+					href={auth ? undefined : "/sign-in"}
+				>
+					{auth?.username ?? "Sign In"}
+				</Button>
 				<Button component="label" color={isImagesInvalid ? "error" : undefined}>
 					Select Images
 					<input
@@ -77,3 +91,5 @@ function formStyle(theme: Theme): SystemStyleObject<Theme> {
 		maxWidth: theme.breakpoints.values.md,
 	}
 }
+
+const signInButtonStyle: SystemStyleObject<Theme> = { alignSelf: "flex-end" }

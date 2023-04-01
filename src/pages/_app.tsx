@@ -7,11 +7,13 @@ import CssBaseline from "@mui/material/CssBaseline"
 import type { AppProps } from "next/app"
 import React from "react"
 
+import { AuthProvider } from "../context/auth"
+
 export default function MyApp({ Component, pageProps }: AppProps):JSX.Element {
 	return (
-		<React.Fragment>
+		<AuthProvider>
 			<CssBaseline />
 			<Component {...pageProps} />
-		</React.Fragment>
+		</AuthProvider>
 	)
 }

@@ -1,7 +1,7 @@
 import mock from "mock-fs"
-import type { NextApiRequest, NextApiResponse } from "next"
 import { createMocks } from "node-mocks-http"
 
+import type { IRequest, IResponse } from "../../common/api"
 import reportHandler from "../../pages/api/report"
 
 describe("Report Handler", () => {
@@ -16,7 +16,7 @@ describe("Report Handler", () => {
 
 		it("should succeed if given the correct input", async () => {
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
 				body: { description: "Test" },
 			})
@@ -29,7 +29,7 @@ describe("Report Handler", () => {
 
 		it("should fail if description is missing", async () => {
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
 				body: {},
 			})
@@ -47,7 +47,7 @@ describe("Report Handler", () => {
 
 			mock({ "reports.csv": mock.file({ mode: 0o0_0_0 }) })
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
 				body: { description: "Test" },
 			})
@@ -64,7 +64,7 @@ describe("Report Handler", () => {
 
 	it("should fail if the method is not allowed", async () => {
 
-		const { req, res } = createMocks<NextApiRequest, NextApiResponse>({ method: "GET" })
+		const { req, res } = createMocks<IRequest, IResponse>({ method: "GET" })
 
 		await reportHandler(req, res)
 
