@@ -97,6 +97,12 @@
 		"react/jsx-fragments": [
 			"error",
 			"element"
+		],
+		"sort-imports": [
+			"error",
+			{
+				"ignoreDeclarationSort": true
+			}
 		]
 	}
 }
