@@ -1,6 +1,6 @@
 import { readerTaskEither as RTE, task as T } from "fp-ts"
 import { pipe } from "fp-ts/function"
-import { PathLike, constants as Constants } from "fs"
+import { constants as Constants, PathLike } from "fs"
 
 import * as fs from "./fs"
 
