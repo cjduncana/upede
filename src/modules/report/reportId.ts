@@ -1,6 +1,6 @@
+import { randomUUID } from "crypto"
 import * as t from "io-ts"
-import { UUID } from "io-ts-types/lib/UUID"
-import { v4, validate } from "uuid"
+import { UUID } from "io-ts-types/UUID"
 
 interface ReportIdBrand {
 	readonly ReportId: unique symbol
@@ -10,10 +10,10 @@ export type ReportId = t.Branded<UUID, ReportIdBrand>
 
 export const ReportId = t.brand(
 	UUID,
-	(s): s is ReportId => validate(s),
+	(s): s is ReportId => Boolean(s),
 	"ReportId",
 )
 
 export function randomReportId(): ReportId {
-	return v4() as ReportId
+	return randomUUID() as ReportId
 }
