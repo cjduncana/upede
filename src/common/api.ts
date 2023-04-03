@@ -35,8 +35,22 @@ export type IHandlerReader<Data, Config> = ReaderTaskEither<
 	Data
 >
 
+const METHOD = {
+	GET: "GET",
+	POST: "POST",
+	PUT: "PUT",
+	PATCH: "PATCH",
+	DELETE: "DELETE",
+} as const
+
+export type Method = keyof typeof METHOD
+
+export type IHandlerRecord<Data, Config> = Partial<
+	Record<keyof typeof METHOD, IHandlerReader<Data, Config>>
+>
+
 export function createHandler<Data, Config>(
-	handlers: Record<string, IHandlerReader<Data, Config>>,
+	handlers: IHandlerRecord<Data, Config>,
 	config: IO<Config>,
 ): ReaderTask<IHandlerOptions<Data>, void> {
 	return pipe(
@@ -46,7 +60,7 @@ export function createHandler<Data, Config>(
 }
 
 function chooseMethod<Data, Config>(
-	handlers: Record<string, IHandlerReader<Data, Config>>,
+	handlers: IHandlerRecord<Data, Config>,
 	config: IO<Config>,
 ): ReaderTaskEither<IHandlerOptions<Data>, IRestApiError, Data> {
 	return (handlerOptions): TaskEither<IRestApiError, Data> => {
@@ -57,12 +71,16 @@ function chooseMethod<Data, Config>(
 
 		const { req } = handlerOptions
 		const { method } = req
-		const handler = method && handlers[method]
+		const handler = isMethod(method) && handlers[method]
 
 		return handler
 			? handler(handlerInput)
 			: TE.left(createMethodNotAllowedError(Object.keys(handlers), method))
 	}
+}
+
+function isMethod(method = ""): method is Method {
+	return Object.values(METHOD).includes(method)
 }
 
 function respondWith<A>(
