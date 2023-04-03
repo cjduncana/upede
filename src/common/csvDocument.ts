@@ -1,11 +1,11 @@
 import { readerTaskEither as RTE, task as T } from "fp-ts"
 import { pipe } from "fp-ts/function"
-import { constants as Constants, PathLike } from "fs"
+import { constants as Constants } from "fs"
 
 import * as fs from "./fs"
 
 interface AppendRowConfig<A> {
-	path: PathLike
+	path: string
 	encode(value: A): Row
 }
 
@@ -43,7 +43,7 @@ function convertCsvString(value: Row, doesFileExist: boolean): string {
 }
 
 function createUnknownError(
-	path: PathLike,
+	path: string,
 	row: Row,
 	nodeException: NodeJS.ErrnoException,
 ): string {

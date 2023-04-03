@@ -1,19 +1,18 @@
 import { readerTaskEither as RTE, taskEither as TE } from "fp-ts"
 import { pipe } from "fp-ts/function"
-import { PathLike } from "fs"
 
 import { randomReportId } from "./reportId"
 import { INewReport, IReport, IReportRepository } from "./type"
 import { Row, appendRow } from "../../common/csvDocument"
 
-export function createReportRepository(path: PathLike): IReportRepository {
+export function createReportRepository(path: string): IReportRepository {
 	return { create: (report: INewReport) => createReportReader(report)(path) }
 }
 
 function createReportReader(
 	newReport: INewReport,
-): RTE.ReaderTaskEither<PathLike, string, IReport> {
-	return (path: PathLike): TE.TaskEither<string, IReport> => {
+): RTE.ReaderTaskEither<string, string, IReport> {
+	return (path: string): TE.TaskEither<string, IReport> => {
 		return pipe(
 			TE.Do,
 			TE.bind("id", () => TE.fromIO(randomReportId)),

@@ -1,16 +1,18 @@
 import {
 	either as E,
+	eq as Eq,
 	readerIO as RIO,
 	readerTask as RT,
+	string as S,
 	taskEither as TE,
 } from "fp-ts"
 import { Either } from "fp-ts/Either"
+import { IO } from "fp-ts/IO"
 import { ReaderIO } from "fp-ts/ReaderIO"
 import type { ReaderTask } from "fp-ts/ReaderTask"
 import { ReaderTaskEither } from "fp-ts/ReaderTaskEither"
 import { TaskEither } from "fp-ts/TaskEither"
-import { flow, pipe } from "fp-ts/function"
-import { IncomingHttpHeaders } from "http"
+import { constant, flow, pipe } from "fp-ts/function"
 import * as t from "io-ts"
 import { PathReporter } from "io-ts/PathReporter"
 import { Lens, Optional } from "monocle-ts"
@@ -22,39 +24,44 @@ export type {
 	NextApiResponse as IResponse,
 } from "next"
 
-export type IHandler<A> = (
+export type IHandler<Data> = (
 	req: NextApiRequest,
-	res: NextApiResponse<A | IRestApiError>,
+	res: NextApiResponse<Data | IRestApiError>,
 ) => Promise<void>
 
-export type IHandlerReader<A> = ReaderTaskEither<
-	IHandlerOptions<A>,
+export type IHandlerReader<Data, Config> = ReaderTaskEither<
+	IHandlerOptions<Data> & Config,
 	IRestApiError,
-	A
+	Data
 >
 
-export function createHandler<A>(
-	handlers: Record<string, IHandlerReader<A>>,
-): ReaderTask<IHandlerOptions<A>, void> {
+export function createHandler<Data, Config>(
+	handlers: Record<string, IHandlerReader<Data, Config>>,
+	config: IO<Config>,
+): ReaderTask<IHandlerOptions<Data>, void> {
 	return pipe(
-		chooseMethod(handlers),
-		RT.chainReaderIOK(
-			flow(respondWith, RIO.local(handlerOptionsToResponseLens<A>().get)),
-		),
+		chooseMethod(handlers, config),
+		RT.chainReaderIOK(flow(respondWith, RIO.local(getResponse))),
 	)
 }
 
-function chooseMethod<A>(
-	handlers: Record<
-		string,
-		ReaderTaskEither<IHandlerOptions<A>, IRestApiError, A>
-	>,
-): ReaderTaskEither<IHandlerOptions<A>, IRestApiError, A> {
-	return ({ req, res }): TaskEither<IRestApiError, A> => {
-		const handler = req.method && handlers[req.method]
+function chooseMethod<Data, Config>(
+	handlers: Record<string, IHandlerReader<Data, Config>>,
+	config: IO<Config>,
+): ReaderTaskEither<IHandlerOptions<Data>, IRestApiError, Data> {
+	return (handlerOptions): TaskEither<IRestApiError, Data> => {
+		const handlerInput: IHandlerOptions<Data> & Config = {
+			...handlerOptions,
+			...config(),
+		}
+
+		const { req } = handlerOptions
+		const { method } = req
+		const handler = method && handlers[method]
+
 		return handler
-			? handler({ req, res })
-			: TE.left(createMethodNotAllowedError(Object.keys(handlers), req.method))
+			? handler(handlerInput)
+			: TE.left(createMethodNotAllowedError(Object.keys(handlers), method))
 	}
 }
 
@@ -147,36 +154,61 @@ export type IRestApiError =
 	| IMethodNotAllowedError
 	| IInternalServerError
 
-export interface IHandlerOptions<A> {
+export interface IHandlerOptions<Data> {
 	req: NextApiRequest
-	res: NextApiResponse<A | IRestApiError>
+	res: NextApiResponse<Data | IRestApiError>
 }
 
-export function handlerOptionsToRequestLens<A>(): Lens<
-	IHandlerOptions<A>,
-	NextApiRequest
-> {
-	return Lens.fromProp<IHandlerOptions<A>>()("req")
+export const AUTHENTICATION_ERROR = {
+	NO_AUTHORIZATION_HEADER: "NO_AUTHORIZATION_HEADER",
+	WRONG_SCHEME: "WRONG_SCHEME",
+	MISSING_CREDENTIALS: "MISSING_CREDENTIALS",
+} as const
+
+export type IAuthenticationError = keyof typeof AUTHENTICATION_ERROR
+
+export type ILoginCredentials = {
+	username: string
+	password: string
 }
 
-export function handlerOptionsToBodyLens<A>(): Lens<
-	IHandlerOptions<A>,
-	unknown
-> {
-	return handlerOptionsToRequestLens<A>().composeLens<unknown>(
-		Lens.fromProp<NextApiRequest>()("body"),
+export const loginCredentialsEq = Eq.struct<ILoginCredentials>({
+	username: S.Eq,
+	password: S.Eq,
+})
+
+export function getLoginCredentials<Data>(
+	handlerOptions: IHandlerOptions<Data>,
+): Either<IAuthenticationError, ILoginCredentials> {
+	return pipe(
+		Optional.fromPath<IHandlerOptions<Data>>()([
+			"req",
+			"headers",
+			"authorization",
+		]).getOption(handlerOptions),
+		E.fromOption(constant(AUTHENTICATION_ERROR.NO_AUTHORIZATION_HEADER)),
+		E.chain(validateLoginCredentialsFromHeader),
 	)
 }
 
-export const requestToHeadersLens = Lens.fromProp<NextApiRequest>()("headers")
-export const requestToAuthorizationHeaderLens =
-	requestToHeadersLens.composeOptional(
-		Optional.fromNullableProp<IncomingHttpHeaders>()("authorization"),
-	)
+function validateLoginCredentialsFromHeader(
+	authorizationHeader: string,
+): Either<IAuthenticationError, ILoginCredentials> {
+	const [scheme, credentials] = authorizationHeader.split(" ")
 
-export function handlerOptionsToResponseLens<A>(): Lens<
-	IHandlerOptions<A>,
-	NextApiResponse<A | IRestApiError>
-> {
-	return Lens.fromProp<IHandlerOptions<A>>()("res")
+	if (scheme !== "Basic") return E.left(AUTHENTICATION_ERROR.WRONG_SCHEME)
+
+	const [username, password] = Buffer.from(credentials, "base64")
+		.toString()
+		.split(":")
+
+	return username && password
+		? E.right({ username, password })
+		: E.left(AUTHENTICATION_ERROR.MISSING_CREDENTIALS)
+}
+
+function getResponse<Data>(
+	handlerOptions: IHandlerOptions<Data>,
+): NextApiResponse<Data | IRestApiError> {
+	return Lens.fromProp<IHandlerOptions<Data>>()("res").get(handlerOptions)
 }

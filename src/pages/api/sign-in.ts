@@ -1,48 +1,69 @@
 import { either as E, readerTaskEither as RTE } from "fp-ts"
-import type { Either } from "fp-ts/Either"
+import type { ReaderEither } from "fp-ts/ReaderEither"
 import { constant, flow } from "fp-ts/function"
 
 import {
 	createHandler,
 	failedAuthentication,
-	handlerOptionsToRequestLens,
-	requestToAuthorizationHeaderLens,
+	getLoginCredentials,
+	loginCredentialsEq,
 } from "../../common/api"
-import type { IHandler, IHandlerReader, IRestApiError } from "../../common/api"
-import { IAuth } from "../../modules/auth/type"
-
-const correctUsername = "admin"
-const correctPassword = "admin"
+import type {
+	IHandler,
+	IHandlerOptions,
+	IHandlerReader,
+	ILoginCredentials,
+	IRestApiError,
+} from "../../common/api"
+import { getAdminLoginCredentials, getConfig } from "../../common/config"
+import type { IConfig } from "../../common/config"
+import type { IAuth } from "../../modules/auth/type"
 
 // POST /api/sign-in: Authenticate a user
 
-const extractCredentialsFromHeader = (authorizationHeader: string): string[] =>
-	Buffer.from(authorizationHeader.replace("Basic ", ""), "base64")
-		.toString()
-		.split(":")
-
-const verifyCredentials = ([username, password]: string[]): Either<
+const signInHandler: IHandlerReader<IAuth, IConfig> = RTE.asksReaderTaskEither<
+	IConfig & IHandlerOptions<IAuth>,
 	IRestApiError,
 	IAuth
-> =>
-	username === correctUsername && password === correctPassword
-		? E.right({ username, jwtToken: password })
-		: E.left(failedAuthentication)
-
-const signInHandler: IHandlerReader<IAuth> = RTE.asksReaderTaskEither(
+>(
 	flow(
-		handlerOptionsToRequestLens<IAuth>().composeOptional(
-			requestToAuthorizationHeaderLens,
-		).getOption,
-		E.fromOption(constant(failedAuthentication)),
-		E.chain(flow(extractCredentialsFromHeader, verifyCredentials)),
+		getLoginCredentials,
+		E.mapLeft(constant(failedAuthentication)),
 		RTE.fromEither,
+		RTE.chainReaderEitherKW(credentialsReader),
 	),
 )
+
+function credentialsReader(
+	credentialsFromRequest: ILoginCredentials,
+): ReaderEither<IConfig, IRestApiError, IAuth> {
+	return flow(
+		getAdminLoginCredentials,
+		E.fromOption(constant(failedAuthentication)),
+		E.chain(verifyCredentials(credentialsFromRequest)),
+	)
+}
+
+function verifyCredentials(
+	credentialsFromRequest: ILoginCredentials,
+): ReaderEither<ILoginCredentials, IRestApiError, IAuth> {
+	return (adminCredentials) =>
+		loginCredentialsEq.equals(credentialsFromRequest, adminCredentials)
+			? E.right({
+					username: credentialsFromRequest.username,
+					jwtToken: credentialsFromRequest.password,
+			  })
+			: E.left(failedAuthentication)
+}
 
 // Glue together all the different methods and their parsers
 
 const handler: IHandler<IAuth> = (req, res) =>
-	createHandler<IAuth>({ POST: signInHandler })({ req, res })()
+	createHandler(
+		{
+			POST: signInHandler,
+		},
+		getConfig,
+	)({ req, res })()
 
 export default handler

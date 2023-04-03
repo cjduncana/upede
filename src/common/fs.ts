@@ -31,13 +31,13 @@ export function appendFile(
 }
 
 interface AccessFileConfig {
-	path: fs.PathLike
+	path: string
 	mode?: number
 }
 
 export const doesFileExist: RT.ReaderTask<AccessFileConfig, boolean> = flow(
 	({ path, mode }: AccessFileConfig) =>
-		TE.taskify<fs.PathLike, number | undefined, NodeJS.ErrnoException, void>(
+		TE.taskify<string, number | undefined, NodeJS.ErrnoException, void>(
 			fs.access,
 		)(path, mode),
 	TE.match(constFalse, constTrue),

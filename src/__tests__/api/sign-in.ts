@@ -9,13 +9,12 @@ describe("Sign In Handler", () => {
 			const username = "admin"
 			const password = "admin"
 
+			const credentialsBuffer = Buffer.from(`${username}:${password}`)
+			const credentials = credentialsBuffer.toString("base64")
+
 			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
-				headers: {
-					authorization: Buffer.from(`${username}:${password}`).toString(
-						"base64",
-					),
-				},
+				headers: { authorization: `Basic ${credentials}` },
 			})
 
 			await signInHandler(req, res)
@@ -28,13 +27,12 @@ describe("Sign In Handler", () => {
 			const username = "not-admin"
 			const password = "admin"
 
+			const credentialsBuffer = Buffer.from(`${username}:${password}`)
+			const credentials = credentialsBuffer.toString("base64")
+
 			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
-				headers: {
-					authorization: Buffer.from(`${username}:${password}`).toString(
-						"base64",
-					),
-				},
+				headers: { authorization: `Basic ${credentials}` },
 			})
 
 			await signInHandler(req, res)
@@ -51,13 +49,12 @@ describe("Sign In Handler", () => {
 			const username = "admin"
 			const password = "not-admin"
 
+			const credentialsBuffer = Buffer.from(`${username}:${password}`)
+			const credentials = credentialsBuffer.toString("base64")
+
 			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
-				headers: {
-					authorization: Buffer.from(`${username}:${password}`).toString(
-						"base64",
-					),
-				},
+				headers: { authorization: `Basic ${credentials}` },
 			})
 
 			await signInHandler(req, res)
