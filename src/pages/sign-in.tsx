@@ -1,6 +1,4 @@
 import { Button, Stack } from "@mui/material"
-import { Theme } from "@mui/material/styles"
-import { SystemStyleObject } from "@mui/system"
 import { useRouter } from "next/router"
 import React from "react"
 
@@ -25,14 +23,14 @@ export default function SignIn(): JSX.Element {
 			return console.error("Invalid form data", { username, password })
 		}
 
-		const response = await signIn(username, password)
+		const response = await signIn({ username, password })
 
 		updateAuth(response)
 		router.push("/")
 	}
 
 	return (
-		<Stack component="form" onSubmit={onSubmit} spacing={2} sx={formStyle}>
+		<Stack component="form" onSubmit={onSubmit} spacing={2}>
 			<h1>Sign In</h1>
 			<TextInput
 				label="Username"
@@ -51,14 +49,6 @@ export default function SignIn(): JSX.Element {
 			</Button>
 		</Stack>
 	)
-}
-
-function formStyle(theme: Theme): SystemStyleObject<Theme> {
-	return {
-		margin: "0 auto",
-		padding: theme.spacing(2),
-		maxWidth: theme.breakpoints.values.md,
-	}
 }
 
 const usernameInputName = "username"

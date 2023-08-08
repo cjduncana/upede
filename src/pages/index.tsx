@@ -10,19 +10,25 @@ import {
 } from "@mui/material"
 import { Theme, useTheme } from "@mui/material/styles"
 import { SystemStyleObject } from "@mui/system"
+import { either as E, option as O } from "fp-ts"
+import type { Option } from "fp-ts/Option"
+import { NonEmptyString } from "io-ts-types"
 import Link from "next/link"
 import React from "react"
 
 import { useAuth } from "../context/auth"
+import type { IAuth } from "../modules/auth/type"
+import { createReport } from "../modules/report/api"
+import type { IReport } from "../modules/report/type"
 
 export default function Index(): JSX.Element {
-	const auth = useAuth()
+	const [auth, isAuthLoaded] = useAuth()
 	const theme = useTheme()
 	const matchDownMd = useMediaQuery(theme.breakpoints.down("sm"))
 
 	const [fileList, setFileList] = React.useState<File[]>([])
-	const [hasSubmitted, setHasSubmitted] = React.useState(false)
 	const [isImagesInvalid, setIsImagesInvalid] = React.useState(false)
+	const [newReport, setNewReport] = React.useState<IReport>()
 
 	const onImagesChange: React.ChangeEventHandler<HTMLInputElement> = (
 		event,
@@ -39,25 +45,53 @@ export default function Index(): JSX.Element {
 		setIsImagesInvalid(event.currentTarget.validity.valueMissing)
 	}
 
-	const onSubmit: React.FormEventHandler = (event) => {
+	// TODO: Turn into a pipe
+	const onSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
 		event.preventDefault()
 
-		setHasSubmitted(true)
+		const formData = new FormData(event.currentTarget)
+
+		const descriptionResult = NonEmptyString.decode(
+			formData.get(descriptionInputName),
+		)
+
+		if (E.isLeft(descriptionResult)) {
+			return console.error("Invalid form data", descriptionResult)
+		}
+
+		const result = await createReport({
+			description: descriptionResult.right,
+		})()
+
+		if (E.isLeft(result)) {
+			return console.error("Failed to create report", result)
+		}
+
+		setNewReport(result.right)
 	}
+
+	if (!isAuthLoaded) return <React.Fragment />
 
 	return (
 		<React.Fragment>
-			{hasSubmitted && <Alert severity="success">Report was generated.</Alert>}
-			<Stack component="form" onSubmit={onSubmit} spacing={2} sx={formStyle}>
+			{newReport && (
+				<Alert
+					severity="success"
+					action={<ViewReportButton report={newReport} auth={auth} />}
+				>
+					Report was generated.
+				</Alert>
+			)}
+			<Stack component="form" onSubmit={onSubmit} spacing={2}>
 				<Button
 					variant="contained"
 					size="small"
 					endIcon={<AccountCircleIcon />}
 					sx={signInButtonStyle}
 					LinkComponent={Link}
-					href={auth ? undefined : "/sign-in"}
+					href={O.isSome(auth) ? undefined : "/sign-in"}
 				>
-					{auth?.username ?? "Sign In"}
+					{O.isSome(auth) ? auth.value.username : "Sign In"}
 				</Button>
 				<Button component="label" color={isImagesInvalid ? "error" : undefined}>
 					Select Images
@@ -73,14 +107,20 @@ export default function Index(): JSX.Element {
 					/>
 				</Button>
 				<ImageList cols={matchDownMd ? 1 : 2}>
-					{fileList.map((file) => (
-						<ImageListItem key={file.name}>
+					{fileList.map((file, index) => (
+						<ImageListItem key={index}>
 							{/* eslint-disable-next-line @next/next/no-img-element*/}
 							<img src={URL.createObjectURL(file)} alt="" />
 						</ImageListItem>
 					))}
 				</ImageList>
-				<TextField label="Image Description" multiline rows={4} required />
+				<TextField
+					label="Report Description"
+					name={descriptionInputName}
+					multiline
+					rows={4}
+					required
+				/>
 				<Button type="submit" variant="contained">
 					Generate Report
 				</Button>
@@ -89,12 +129,26 @@ export default function Index(): JSX.Element {
 	)
 }
 
-function formStyle(theme: Theme): SystemStyleObject<Theme> {
-	return {
-		margin: "0 auto",
-		padding: theme.spacing(2),
-		maxWidth: theme.breakpoints.values.md,
-	}
+const signInButtonStyle: SystemStyleObject<Theme> = { alignSelf: "flex-end" }
+
+type IViewReportButtonProps = {
+	report: IReport
+	auth: Option<IAuth>
 }
 
-const signInButtonStyle: SystemStyleObject<Theme> = { alignSelf: "flex-end" }
+function ViewReportButton(props: IViewReportButtonProps): JSX.Element {
+	return O.isSome(props.auth) ? (
+		<Button
+			color="inherit"
+			size="small"
+			LinkComponent={Link}
+			href={`/report/${props.report.id}`}
+		>
+			View Report
+		</Button>
+	) : (
+		<React.Fragment />
+	)
+}
+
+const descriptionInputName = "description"

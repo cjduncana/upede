@@ -120,14 +120,29 @@ function respondWith<A>(
 		)(result)
 }
 
+const IRestApiErrorType = {
+	BadRequestError: "BadRequestError",
+	UnauthorizedError: "UnauthorizedError",
+	MethodNotAllowedError: "MethodNotAllowedError",
+	InternalServerError: "InternalServerError",
+} as const
+
 interface IBadRequestError {
 	type: "BadRequestError"
 	errors: string[]
 }
 
+const BadRequestError = t.type(
+	{
+		type: t.literal(IRestApiErrorType.BadRequestError),
+		errors: t.array(t.string),
+	},
+	IRestApiErrorType.BadRequestError,
+)
+
 export function getParseError(errors: t.Errors): IRestApiError {
 	return {
-		type: "BadRequestError",
+		type: IRestApiErrorType.BadRequestError,
 		errors: PathReporter.report(E.left(errors)),
 	}
 }
@@ -138,8 +153,17 @@ interface IUnauthorizedError {
 	message: string
 }
 
+const UnauthorizedError = t.type(
+	{
+		type: t.literal(IRestApiErrorType.UnauthorizedError),
+		challenge: t.union([t.literal("Basic"), t.literal("Bearer")]),
+		message: t.string,
+	},
+	IRestApiErrorType.UnauthorizedError,
+)
+
 export const failedAuthentication: IUnauthorizedError = {
-	type: "UnauthorizedError",
+	type: IRestApiErrorType.UnauthorizedError,
 	challenge: "Basic",
 	message: "Invalid username or password",
 }
@@ -150,12 +174,21 @@ interface IMethodNotAllowedError {
 	message: string
 }
 
+const MethodNotAllowedError = t.type(
+	{
+		type: t.literal(IRestApiErrorType.MethodNotAllowedError),
+		allowedMethods: t.array(t.string),
+		message: t.string,
+	},
+	IRestApiErrorType.MethodNotAllowedError,
+)
+
 function createMethodNotAllowedError(
 	allowedMethods: string[],
 	method?: string,
 ): IMethodNotAllowedError {
 	return {
-		type: "MethodNotAllowedError",
+		type: IRestApiErrorType.MethodNotAllowedError,
 		allowedMethods,
 		message: method ? `Method "${method}" not allowed` : "Method not allowed",
 	}
@@ -166,11 +199,29 @@ interface IInternalServerError {
 	message: string
 }
 
+const InternalServerError = t.type(
+	{
+		type: t.literal(IRestApiErrorType.InternalServerError),
+		message: t.string,
+	},
+	IRestApiErrorType.InternalServerError,
+)
+
 export type IRestApiError =
 	| IBadRequestError
 	| IUnauthorizedError
 	| IMethodNotAllowedError
 	| IInternalServerError
+
+export const RestApiError = t.union(
+	[
+		BadRequestError,
+		UnauthorizedError,
+		MethodNotAllowedError,
+		InternalServerError,
+	],
+	"RestApiError",
+)
 
 export interface IHandlerOptions<Data> {
 	req: NextApiRequest

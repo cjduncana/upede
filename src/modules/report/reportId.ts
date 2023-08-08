@@ -8,7 +8,7 @@ interface ReportIdBrand {
 
 export type ReportId = t.Branded<UUID, ReportIdBrand>
 
-export const ReportId = t.brand(
+export const ReportIdCodec = t.brand(
 	UUID,
 	(s): s is ReportId => Boolean(s),
 	"ReportId",

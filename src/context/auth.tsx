@@ -1,32 +1,58 @@
+import { either as E, option as O } from "fp-ts"
+import type { Option } from "fp-ts/Option"
 import React from "react"
 
-import { IAuth } from "../modules/auth/type"
+import {
+	getAuth as getAuthFromLocalStorage,
+	setAuth as setAuthToLocalStorage,
+} from "../modules/auth/local-storage"
+import type { IAuth } from "../modules/auth/type"
 
 const AuthContext = React.createContext<
-	| [IAuth | undefined, React.Dispatch<React.SetStateAction<IAuth | undefined>>]
+	| [
+			Option<IAuth>,
+			boolean,
+			React.Dispatch<React.SetStateAction<Option<IAuth>>>,
+	  ]
 	| undefined
 >(undefined)
 
 export function AuthProvider(props: React.PropsWithChildren): JSX.Element {
-	const [auth, setAuth] = React.useState<IAuth>()
+	const [auth, setAuth] = React.useState<Option<IAuth>>(O.none)
+	const [isAuthLoaded, setIsAuthLoaded] = React.useState(false)
+	const typeofWindow = typeof window
+
+	React.useEffect(() => {
+		if (!window) return
+
+		const result = getAuthFromLocalStorage(window)()
+
+		if (E.isRight(result)) {
+			setAuth(result.right)
+		} else {
+			console.error(result.left)
+		}
+
+		setIsAuthLoaded(true)
+	}, [typeofWindow])
 
 	return (
-		<AuthContext.Provider value={[auth, setAuth]}>
+		<AuthContext.Provider value={[auth, isAuthLoaded, setAuth]}>
 			{props.children}
 		</AuthContext.Provider>
 	)
 }
 
-export function useAuth(): IAuth | undefined {
+export function useAuth(): [Option<IAuth>, boolean] {
 	const context = React.useContext(AuthContext)
 
 	if (!context) {
 		throw new Error("useAuth must be used within a AuthProvider")
 	}
 
-	const [auth] = context
+	const [auth, isAuthLoaded] = context
 
-	return auth
+	return [auth, isAuthLoaded]
 }
 
 export function useUpdateAuth(): (auth: IAuth) => void {
@@ -36,7 +62,19 @@ export function useUpdateAuth(): (auth: IAuth) => void {
 		throw new Error("useUpdateAuth must be used within a AuthProvider")
 	}
 
-	const [, setAuth] = context
+	const [, , setAuth] = context
 
-	return setAuth
+	return (auth: IAuth) => {
+		setAuth(O.some(auth))
+
+		if (!window) {
+			return
+		}
+
+		const result = setAuthToLocalStorage(window, auth)()
+
+		if (E.isLeft(result)) {
+			console.error(result.left)
+		}
+	}
 }

@@ -23,6 +23,7 @@
 				"allowExpressions": true
 			}
 		],
+		"@typescript-eslint/no-namespace": "off",
 		"import/newline-after-import": "error",
 		"import/no-cycle": "error",
 		"import/no-extraneous-dependencies": "error",

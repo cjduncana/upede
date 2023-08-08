@@ -42,3 +42,18 @@ export const doesFileExist: RT.ReaderTask<AccessFileConfig, boolean> = flow(
 		)(path, mode),
 	TE.match(constFalse, constTrue),
 )
+
+interface ReadFileConfig {
+	path: string
+	encoding: BufferEncoding
+}
+
+export const readFile: NodeReaderTaskEither<ReadFileConfig, string> = flow(
+	({ path, encoding }: ReadFileConfig) =>
+		TE.taskify<
+			string,
+			{ encoding: BufferEncoding },
+			NodeJS.ErrnoException,
+			string
+		>(fs.readFile)(path, { encoding }),
+)

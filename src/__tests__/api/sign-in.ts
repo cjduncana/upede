@@ -1,6 +1,7 @@
 import { createMocks } from "node-mocks-http"
 
 import type { IRequest, IResponse } from "../../common/api"
+import { createCredentialsHeader } from "../../modules/auth/api"
 import signInHandler from "../../pages/api/sign-in"
 
 describe("Sign In Handler", () => {
@@ -9,12 +10,9 @@ describe("Sign In Handler", () => {
 			const username = "admin"
 			const password = "admin"
 
-			const credentialsBuffer = Buffer.from(`${username}:${password}`)
-			const credentials = credentialsBuffer.toString("base64")
-
 			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
-				headers: { authorization: `Basic ${credentials}` },
+				headers: createCredentialsHeader({ username, password }),
 			})
 
 			await signInHandler(req, res)
@@ -27,12 +25,9 @@ describe("Sign In Handler", () => {
 			const username = "not-admin"
 			const password = "admin"
 
-			const credentialsBuffer = Buffer.from(`${username}:${password}`)
-			const credentials = credentialsBuffer.toString("base64")
-
 			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
-				headers: { authorization: `Basic ${credentials}` },
+				headers: createCredentialsHeader({ username, password }),
 			})
 
 			await signInHandler(req, res)
@@ -49,12 +44,9 @@ describe("Sign In Handler", () => {
 			const username = "admin"
 			const password = "not-admin"
 
-			const credentialsBuffer = Buffer.from(`${username}:${password}`)
-			const credentials = credentialsBuffer.toString("base64")
-
 			const { req, res } = createMocks<IRequest, IResponse>({
 				method: "POST",
-				headers: { authorization: `Basic ${credentials}` },
+				headers: createCredentialsHeader({ username, password }),
 			})
 
 			await signInHandler(req, res)

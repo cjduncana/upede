@@ -8,6 +8,7 @@ import type { AppProps } from "next/app"
 import Head from "next/head"
 import React from "react"
 
+import { Container } from "../component/container"
 import { AuthProvider } from "../context/auth"
 
 export default function MyApp({ Component, pageProps }: AppProps): JSX.Element {
@@ -17,7 +18,9 @@ export default function MyApp({ Component, pageProps }: AppProps): JSX.Element {
 			<Head>
 				<meta name="viewport" content="initial-scale=1, width=device-width" />
 			</Head>
-			<Component {...pageProps} />
+			<Container>
+				<Component {...pageProps} />
+			</Container>
 		</AuthProvider>
 	)
 }
